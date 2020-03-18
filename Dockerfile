@@ -1,7 +1,5 @@
 FROM openjdk:8-stretch
 
-MAINTAINER Jesper Jakobsen <jesper.jakobsen@alexandra.dk>
-
 #####
 # Install development tools
 RUN apt-get update && apt-get install -y make build-essential gradle maven curl python3-pip && pip3 install conan
