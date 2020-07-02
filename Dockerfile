@@ -57,7 +57,7 @@ ENV ANDROID_NDK_HOME="${ANDROID_HOME}/ndk/20.0.5594570"
 
 RUN mkdir -pv ${ANDROID_HOME}/ndk-bundle/toolchains/mips64el-linux-android/prebuilt/linux-x86_64
 
-RUN echo no | /android/tools/bin/avdmanager create avd -f -n test -k "system-images;android-25;google_apis;arm64-v8a"
+RUN echo no | /android/tools/bin/avdmanager create avd -f --abi google_apis/x86_64 -n test -k "system-images;android-25;google_apis;arm64-v8a"
 
 # Generate debug key
 RUN keytool -genkey -noprompt -dname "O=alexandrainstituttet" -v -keystore /android/debug.keystore\
