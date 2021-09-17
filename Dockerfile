@@ -39,6 +39,7 @@ RUN mkdir android && cd android && \
     wget -q "https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip" && \
     unzip sdk-tools-linux-3859397.zip && \
     echo y | sdkmanager "build-tools;28.0.3" && \
+    echo y | sdkmanager "build-tools;30.0.3" && \
     sdkmanager "platforms;android-27" && \
     sdkmanager "platforms;android-28" && \
     sdkmanager "add-ons;addon-google_apis-google-23" && \
