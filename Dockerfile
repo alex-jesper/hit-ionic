@@ -26,8 +26,7 @@ RUN build_deps="curl" && \
 RUN mkdir /data
 ENV TERM="dumb" \
     ANDROID_HOME="/android" \
-    ANDROID_SDK="/android" \
-    ANDROID_CMAKE_REV="3.6.4111459"
+    ANDROID_SDK="/android"
 
 ENV PATH="${ANDROID_HOME}/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
 
@@ -48,8 +47,6 @@ RUN mkdir android && cd android && \
     rm sdk-tools-linux-3859397.zip
 
 RUN yes | sdkmanager "system-images;android-25;google_apis;arm64-v8a"
-
-RUN mkdir -pv ${ANDROID_HOME}/ndk-bundle/toolchains/mips64el-linux-android/prebuilt/linux-x86_64
 
 RUN echo no | /android/tools/bin/avdmanager create avd -f --abi google_apis/arm64-v8a -n test -k "system-images;android-25;google_apis;arm64-v8a"
 
