@@ -27,17 +27,24 @@ ENV TERM="dumb" \
   ANDROID_SDK="/android" \
   ANDROID_CMAKE_REV="3.6.4111459"
 
-ENV PATH="${ANDROID_HOME}/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+ENV PATH="${ANDROID_HOME}/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 
 RUN dpkg --add-architecture i386 && \
   apt-get update && \
   apt-get install -yq libc6:i386 libstdc++6:i386 zlib1g:i386 libncurses5:i386 expect --no-install-recommends
 
 RUN mkdir android && cd android && \
-  wget -q "https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip" && \
-  unzip sdk-tools-linux-3859397.zip && \
-  echo y | sdkmanager "build-tools;28.0.3" && \
-  echo y | sdkmanager "build-tools;30.0.3" && \
+  wget -q "https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip" && \
+  unzip commandlinetools-linux-9123335_latest.zip && \
+  cd cmdline-tools && mkdir latest && \
+  mv NOTICE.txt latest/ && \
+  mv source.properties latest/ && \
+  mv lib latest/ && \
+  mv bin latest/
+
+RUN yes | sdkmanager --licenses
+
+RUN echo yes | sdkmanager "build-tools;33.0.1" && \
   sdkmanager "platforms;android-27" && \
   sdkmanager "platforms;android-28" && \
   sdkmanager "add-ons;addon-google_apis-google-23" && \
@@ -45,18 +52,19 @@ RUN mkdir android && cd android && \
   sdkmanager "extras;google;m2repository" && \
   sdkmanager --update && \
   printf "y\ny\ny\ny\ny\n" |sdkmanager --licenses && \
-  rm sdk-tools-linux-3859397.zip
+  rm $ANDROID_HOME/commandlinetools-linux-9123335_latest.zip
 
 RUN yes | sdkmanager "system-images;android-25;google_apis;arm64-v8a"
-
-RUN    yes | sdkmanager 'cmake;'$ANDROID_CMAKE_REV \
-  && yes | sdkmanager 'ndk;20.0.5594570'
+RUN yes | sdkmanager --install 'cmake;'$ANDROID_CMAKE_REV \
+  && yes | sdkmanager --install 'ndk;20.0.5594570'
 
 ENV ANDROID_NDK_HOME="${ANDROID_HOME}/ndk/20.0.5594570"
 
 RUN mkdir -pv ${ANDROID_HOME}/ndk-bundle/toolchains/mips64el-linux-android/prebuilt/linux-x86_64
 
-RUN echo no | /android/tools/bin/avdmanager create avd -f --abi google_apis/arm64-v8a -n test -k "system-images;android-25;google_apis;arm64-v8a"
+RUN sdkmanager emulator --channel=3
+
+RUN echo no | ${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager create avd -f --abi google_apis/arm64-v8a -n test -k "system-images;android-25;google_apis;arm64-v8a"
 
 # Generate debug key
 RUN keytool -genkey -noprompt -dname "O=alexandrainstituttet" -v -keystore /android/debug.keystore\
@@ -111,8 +119,8 @@ RUN set -ex \
   gpg --batch --keyserver hkp://ipv4.pool.sks-keyservers.net --recv-keys "$key" || \
   gpg --batch --keyserver hkp://pgp.mit.edu:80 --recv-keys "$key" ; \
   done \
-  && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
-  && curl -fsSLO --compressed "https://yarnpkg.com/downloads/$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz.asc" \
+  && curl -fsSLO --compressed "https://github.com/yarnpkg/yarn/releases/download/v$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz" \
+  && curl -fsSLO --compressed "https://github.com/yarnpkg/yarn/releases/download/v$YARN_VERSION/yarn-v$YARN_VERSION.tar.gz.asc" \
   && gpg --batch --verify yarn-v$YARN_VERSION.tar.gz.asc yarn-v$YARN_VERSION.tar.gz \
   && mkdir -p /opt \
   && tar -xzf yarn-v$YARN_VERSION.tar.gz -C /opt/ \
