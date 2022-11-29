@@ -23,11 +23,10 @@ RUN build_deps="curl" && \
 # Install android SDK
 RUN mkdir /data
 ENV TERM="dumb" \
-  ANDROID_HOME="/android" \
   ANDROID_SDK_ROOT="/android" \
   ANDROID_CMAKE_REV="3.6.4111459"
 
-ENV PATH="${ANDROID_HOME}/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+ENV PATH="${ANDROID_SDK_ROOT}/tools:$ANDROID_SDK_ROOT/tools/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
 
 RUN dpkg --add-architecture i386 && \
   apt-get update && \
@@ -45,6 +44,7 @@ RUN mkdir android && cd android && \
 RUN yes | sdkmanager --licenses
 
 RUN echo yes | sdkmanager "build-tools;33.0.1" && \
+  sdkmanager "platform-tools" && \
   sdkmanager "platforms;android-27" && \
   sdkmanager "platforms;android-28" && \
   sdkmanager "add-ons;addon-google_apis-google-23" && \
@@ -52,19 +52,21 @@ RUN echo yes | sdkmanager "build-tools;33.0.1" && \
   sdkmanager "extras;google;m2repository" && \
   sdkmanager --update && \
   printf "y\ny\ny\ny\ny\n" |sdkmanager --licenses && \
-  rm $ANDROID_HOME/commandlinetools-linux-9123335_latest.zip
+  rm $ANDROID_SDK_ROOT/commandlinetools-linux-9123335_latest.zip
 
 RUN yes | sdkmanager "system-images;android-25;google_apis;arm64-v8a"
 RUN yes | sdkmanager --install 'cmake;'$ANDROID_CMAKE_REV \
   && yes | sdkmanager --install 'ndk;20.0.5594570'
 
-ENV ANDROID_NDK_HOME="${ANDROID_HOME}/ndk/20.0.5594570"
+ENV ANDROID_NDK_HOME="${ANDROID_SDK_ROOT}/ndk/20.0.5594570"
 
-RUN mkdir -pv ${ANDROID_HOME}/ndk-bundle/toolchains/mips64el-linux-android/prebuilt/linux-x86_64
+RUN mkdir -pv ${ANDROID_SDK_ROOT}/ndk-bundle/toolchains/mips64el-linux-android/prebuilt/linux-x86_64
 
 RUN sdkmanager emulator --channel=3
 
-RUN echo no | ${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager create avd -f --abi google_apis/arm64-v8a -n test -k "system-images;android-25;google_apis;arm64-v8a"
+ENV PATH="$ANDROID_SDK_ROOT/platform-tools/:$ANDROID_SDK_ROOT/emulator/:$PATH"
+
+RUN echo no | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager create avd -f --abi google_apis/arm64-v8a -n test -k "system-images;android-25;google_apis;arm64-v8a"
 
 # Generate debug key
 RUN keytool -genkey -noprompt -dname "O=alexandrainstituttet" -v -keystore /android/debug.keystore\
@@ -136,7 +138,7 @@ RUN npm i -g @angular/cli@${ANGULAR_CLI_VERSION}
 
 #####
 # Install cordova
-ENV CORDOVA_VERSION 9.0.0
+ENV CORDOVA_VERSION 11.0.0
 
 WORKDIR "/tmp"
 
@@ -157,5 +159,5 @@ RUN apt-get update && apt-get install -y git bzip2 openssh-client && \
 # Hack to make cordova work with new android tools
 # https://stackoverflow.com/questions/60819186/cordova-fails-to-find-android-home-environment-variable
 
-RUN mkdir ${ANDROID_HOME}/tools
-RUN ln -s ${ANDROID_HOME}/cmdline-tools/latest/bin ${ANDROID_HOME}/tools/bin
+RUN mkdir ${ANDROID_SDK_ROOT}/tools
+RUN ln -s ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin ${ANDROID_SDK_ROOT}/tools/bin
