@@ -154,10 +154,3 @@ RUN apt-get update && apt-get install -y git bzip2 openssh-client && \
   npm i -g --unsafe-perm ionic@${IONIC_VERSION} && \
   ionic --no-interactive config set -g daemon.updates false && \
   rm -rf /var/lib/apt/lists/* && apt-get clean
-
-#####
-# Hack to make cordova work with new android tools
-# https://stackoverflow.com/questions/60819186/cordova-fails-to-find-android-home-environment-variable
-
-RUN mkdir ${ANDROID_SDK_ROOT}/tools
-RUN ln -s ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin ${ANDROID_SDK_ROOT}/tools/bin
