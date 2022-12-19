@@ -2,7 +2,17 @@ FROM openjdk:11-stretch
 
 #####
 # Install development tools
-RUN apt-get update && apt-get install -y make build-essential gradle maven curl python3-pip
+RUN apt-get update && apt-get install -y make build-essential maven curl python3-pip
+
+# Install gradle
+ENV GRADLE_VERSION=6.5.1
+
+RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -P /tmp
+RUN unzip -d /opt/gradle /tmp/gradle-${GRADLE_VERSION}-bin.zip
+RUN ln -s /opt/gradle/gradle-${GRADLE_VERSION} /opt/gradle/latest
+
+ENV GRADLE_HOME="/opt/gradle/gradle-${GRADLE_VERSION}"
+ENV PATH="$PATH:$GRADLE_HOME/bin"
 
 # Android emulator requires this
 RUN apt-get install -y libpulse0 libgl1 libxcomposite1 libxcursor1 libasound2
@@ -43,7 +53,7 @@ RUN mkdir android && cd android && \
 
 RUN yes | sdkmanager --licenses
 
-RUN echo yes | sdkmanager "build-tools;33.0.1" && \
+RUN echo yes | sdkmanager "build-tools;30.0.3" && \
   sdkmanager "platform-tools" && \
   sdkmanager "platforms;android-27" && \
   sdkmanager "platforms;android-28" && \
@@ -64,9 +74,12 @@ RUN mkdir -pv ${ANDROID_SDK_ROOT}/ndk-bundle/toolchains/mips64el-linux-android/p
 
 RUN sdkmanager emulator --channel=3
 
-ENV PATH="$ANDROID_SDK_ROOT/platform-tools/:$ANDROID_SDK_ROOT/emulator/:$PATH"
+ENV PATH="${ANDROID_NDK_HOME}:$ANDROID_SDK_ROOT/build-tools/:$ANDROID_SDK_ROOT/platform-tools/bin:$ANDROID_SDK_ROOT/emulator/:$PATH"
 
 RUN echo no | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/avdmanager create avd -f --abi google_apis/arm64-v8a -n test -k "system-images;android-25;google_apis;arm64-v8a"
+
+#Copy source.properties file to ndk-bundle
+RUN cp ${ANDROID_NDK_HOME}/source.properties ${ANDROID_SDK_ROOT}/ndk-bundle
 
 # Generate debug key
 RUN keytool -genkey -noprompt -dname "O=alexandrainstituttet" -v -keystore /android/debug.keystore\
