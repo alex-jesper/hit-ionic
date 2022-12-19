@@ -53,7 +53,7 @@ RUN mkdir android && cd android && \
 
 RUN yes | sdkmanager --licenses
 
-RUN echo yes | sdkmanager "build-tools;30.0.3" && \
+RUN echo yes | sdkmanager "build-tools;33.0.1" && \
   sdkmanager "platform-tools" && \
   sdkmanager "platforms;android-27" && \
   sdkmanager "platforms;android-28" && \
